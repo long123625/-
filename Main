@@ -1,0 +1,43 @@
+#include <stdio.h>
+ 2 #include <stdlib.h>
+ 3 #include <unistd.h> 
+ 4 #include "mpi.h"
+ 5 
+ 6 int main(int argc, char *argv[])
+  {
+     int err = 0;
+      double t1, t2;
+    double tick;
+    int i;
+12 
+13     MPI_Init(&argc, &argv);
+14     t1 = MPI_Wtime();
+15     t2 = MPI_Wtime();
+16     if (t2-t1>0.0 || t2-t1<0.0) {
+17         err++;
+18         fprintf(stderr, "two successive calls to MPI_Wtime gave strange results: (%f)(%f)\n", t1, t2);
+19     }
+20 
+21     for( i=0; i<10; i++)
+22     {
+23         t1 = MPI_Wtime();
+24         sleep(1);
+25         t2 = MPI_Wtime();
+26         if (t2-t1>=(1-0.1) && t2-t1<=5) {
+27             break;
+28         }
+29         if (t2-t1>5.0) {
+30             i = 9;
+31         }
+32     }
+33     if (i==10) {
+34         fprintf(stderr, "timer around sleep(1) did not give 1 second; gave %f\n", t2-t1);
+35         err++;
+36     }
+37     tick = MPI_Wtick();
+38     if (tick>1.0 || tick<0.0) {
+39         err++;
+40         fprintf(stderr, "MPI_Wtick gave a strange result:(%f)\n", tick);
+41     }
+42     MPI_Finalize();
+43 }
